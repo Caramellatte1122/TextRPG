@@ -136,113 +136,111 @@ class TextRPG
         public string info;
         public int effect;
         public int price;
+        public string type;
         public bool isOwned = false;
         public bool isEquipped = false;
 
-        public Item(string name, string info, int effect, int price, bool isOwned, bool isEquipped)
+        public Item(string name, string info, int effect, int price, string type, bool isOwned, bool isEquipped)
         {
             this.name = name;
             this.info = info;
             this.effect = effect;
             this.price = price;
+            this.type = type;
             this.isOwned = isOwned;
             this.isEquipped = isEquipped;
+        }
+
+        public Item(Item other) //복사 생성자
+        {
+            this.name = other.name;
+            this.info = other.info;
+            this.effect = other.effect;
+            this.price = other.price;
+            this.type = other.type;
+            this.isOwned = true;
+            this.isEquipped = false;
         }
     }
 
     private void AddStoreItem()
     {
-        storeItem.Add(new Item("수련자 갑옷", "수련에 도움을 주는 갑옷입니다.", 5, 1000, false, false));
-        storeItem.Add(new Item("무쇠갑옷", "무쇠로 만들어져 튼튼한 갑옷입니다.", 9, 0, false, false)); //구매완료 = 0 G
-        storeItem.Add(new Item("스파르타의 갑옷", "스파르타의 전사들이 사용했다는 전설의 갑옷입니다.", 15, 3500, false, false));
-        storeItem.Add(new Item("낡은 검", "쉽게 볼 수 있는 낡은 검 입니다.", 2, 600, false, false));
-        storeItem.Add(new Item("청동 도끼", "어디선가 사용됐던거 같은 도끼입니다.", 5, 1500, false, false));
-        storeItem.Add(new Item("스파르타의 창", "스파르타의 전사들이 사용했다는 전설의 창입니다.", 7, 0, false, false)); //구매완료 = 0 G
+        storeItem.Add(new Item("수련자 갑옷", "수련에 도움을 주는 갑옷입니다.", 5, 1000, "방어력", false, false));
+        storeItem.Add(new Item("무쇠갑옷", "무쇠로 만들어져 튼튼한 갑옷입니다.", 9, 2000, "방어력", false, false)); 
+        storeItem.Add(new Item("스파르타의 갑옷", "스파르타의 전사들이 사용했다는 전설의 갑옷입니다.", 15, 3500, "방어력", false, false));
+        storeItem.Add(new Item("낡은 검", "쉽게 볼 수 있는 낡은 검 입니다.", 2, 600, "공격력",false, false));
+        storeItem.Add(new Item("청동 도끼", "어디선가 사용됐던거 같은 도끼입니다.", 5, 1500, "공격력", false, false));
+        storeItem.Add(new Item("스파르타의 창", "스파르타의 전사들이 사용했다는 전설의 창입니다.", 7, 3500, "공격력",false, false)); 
     }
 
     private void ManageItem()
     {
-        playerItem.Add(new Item("무쇠갑옷", "무쇠로 만들어져 튼튼한 갑옷입니다.", 5, 1000, true, false));
-        playerItem.Add(new Item("스파르타의 창", "스파르타의 전사들이 사용했다는 전설의 창입니다.", 7, 0, true, false));
-        playerItem.Add(new Item("낡은 검", "쉽게 볼 수 있는 낡은 검 입니다.", 2, 600, true, false));
-
         while (true)
         {
             Console.WriteLine("인벤토리 - 장착관리");
             Console.WriteLine("보유 중인 아이템을 관리할 수 있습니다.");
             Console.WriteLine();
             Console.WriteLine("[아이템 목록]");
-            Console.WriteLine($"- 1 {(playerItem[1].isEquipped ? "[E]" : "")}{playerItem[1].name}      | 방어력 +{playerItem[1].effect} | {playerItem[1].info} ");
-            Console.WriteLine($"- 2 {(playerItem[2].isEquipped ? "[E]" : "")}{playerItem[2].name}  | 공격력 +{playerItem[1].effect}  | {playerItem[1].info}");
-            Console.WriteLine($"- 3 {(playerItem[3].isEquipped ? "[E]" : "")}{playerItem[3].name}         | 공격력 +{playerItem[1].effect}  | {playerItem[1].info}");
-            Console.WriteLine();
-            Console.WriteLine("0. 나가기");
-            Console.WriteLine();
-            PrintInputMessage();
-            string input = GetPlayerInput();
 
-            if (input == "1")
+            if (playerItem.Count > 0)
             {
-                if (playerItem[1].isEquipped == false)
+                for (int i = 0; i < playerItem.Count; i++)
                 {
-                    playerItem[1].isEquipped = true;
-                    addArmor += playerItem[1].effect;
-                    armor += addArmor;
-
-                    Console.WriteLine("방어력 + 5.");
+                    var item = playerItem[i];
+                    var equip = item.isEquipped ? "[E]" : "";
+                    Console.WriteLine($" -{i + 1} {item.name} {equip} | {item.type} + {item.effect} | {item.info}");
                 }
 
-                else
-                {
-                    playerItem[1].isEquipped = false;
-                    armor -= addArmor;
-                    addArmor -= playerItem[1].effect;
-                    Console.WriteLine("방어력 - 5.");
+                Console.WriteLine();
+                Console.WriteLine("0. 나가기");
+                Console.WriteLine();
+                PrintInputMessage();
+                string input = GetPlayerInput();
 
+                if (input == "0") return;
+
+                if (int.TryParse(input, out int index) && index >= 1 && index <= playerItem.Count)
+                {
+                    var item = playerItem[index - 1];
+
+                    if (item.isEquipped == true)
+                    {
+                        item.isEquipped = false;
+
+                        if (item.type == "공격력") addAttack -= item.effect;
+
+                        else if (item.type == "방어력") addArmor -= item.effect;
+
+                        Console.WriteLine($"{item.name} 장착 해제!");
+                    }
+
+                    else
+                    {
+                        item.isEquipped = true;
+
+                        if (item.type == "공격력") addAttack += item.effect;
+
+                        else if (item.type == "방어력") addArmor += item.effect;
+
+                        Console.WriteLine($"{item.name} 장착 완료!");
+                    }
                 }
+                else PrintErrorMsg();
             }
 
-            else if (input == "2")
+            else
             {
-                if (playerItem[2].isEquipped == false)
-                {
-                    playerItem[2].isEquipped = true;
-                    addAttack += playerItem[2].effect;
-                    attack += addAttack;
-                    Console.WriteLine("공격력 + 7.");
-                }
+                Console.WriteLine("보유 중인 아이템이 없습니다.");
+                Console.WriteLine();
+                Console.WriteLine("0. 나가기");
+                Console.WriteLine();
+                PrintInputMessage();
+                string input = GetPlayerInput();
 
-                else
-                {
-                    playerItem[2].isEquipped = false;
-                    attack -= addAttack;
-                    addAttack -= playerItem[2].effect;
-                    Console.WriteLine("방어력 - 7.");
-                }
+                if (input == "0") return;
+
+                else PrintErrorMsg();
             }
-
-            else if (input == "3")
-            {
-                if (playerItem[3].isEquipped == false)
-                {
-                    playerItem[3].isEquipped = true;
-                    addAttack += playerItem[3].effect;
-                    attack += addAttack;
-                    Console.WriteLine("공격력 + 2.");
-                }
-
-                else
-                {
-                    playerItem[3].isEquipped = false;
-                    attack -= addAttack;
-                    addAttack -= playerItem[3].effect;
-                    Console.WriteLine("방어력 - 2.");
-                }
-            }
-
-            else if (input == "0") return;
-
-            else PrintErrorMsg();
         }
     }
 
@@ -257,56 +255,38 @@ class TextRPG
             Console.WriteLine($"{gold} G");
             Console.WriteLine();
             Console.WriteLine("[아이템 목록]");
-            Console.WriteLine($"- 1 {storeItem[1].name}    | 방어력 +{storeItem[1].effect}  | {storeItem[1].info}             |  {(storeItem[1].isOwned ? "판매완료" : storeItem[1].price)} G");
-            Console.WriteLine($"- 2 {storeItem[2].name}      | 방어력 +{storeItem[2].effect} | {storeItem[2].info}           | {(storeItem[2].isOwned ? "판매완료" : storeItem[2].price)} G");
-            Console.WriteLine($"- 3 {storeItem[3].name} | 방어력 +{storeItem[3].effect} | {storeItem[3].info}|  {(storeItem[3].isOwned ? "판매완료" : storeItem[3].price)} G");
-            Console.WriteLine($"- 4 {storeItem[4].name}      | 공격력 +{storeItem[4].effect}  | {storeItem[4].info}            |  {(storeItem[4].isOwned ? "판매완료" : storeItem[4].price)} G");
-            Console.WriteLine($"- 5 {storeItem[5].name}     | 공격력 +{storeItem[5].effect}  |  {storeItem[5].info}        |  {(storeItem[5].isOwned ? "판매완료" : storeItem[5].price)} G");
-            Console.WriteLine($"- 6 {storeItem[6].name}  | 공격력 +{storeItem[6].effect}  | {storeItem[6].info} |  {(storeItem[6].isOwned ? "판매완료" : storeItem[6].price)} G");
+
+            for (int i = 0; i < storeItem.Count; i++)
+            {
+                var item = storeItem[i];
+                var priceTag = item.isOwned ? "구매완료" : item.price + "G";
+                Console.WriteLine($" - {i + 1}. {item.name} | {item.type} + {item.effect} | {item.info} | {priceTag}");
+            }
+
             Console.WriteLine();
             Console.WriteLine("1. 아이템 구매");
             Console.WriteLine("0. 나가기");
             PrintInputMessage();
             string input = GetPlayerInput();
 
-            if (input == "1")
+            if (input == "0") return;
+
+            else if (int.TryParse(input, out int storeIndex) && storeIndex >= 1 && storeIndex <= storeItem.Count)
             {
-                if (playerItem[1].isOwned == true) Console.WriteLine("이미 구매한 아이템입니다.");
+                var purchaseItem = storeItem[storeIndex - 1];
 
-                if (gold < storeItem[1].price) Console.WriteLine("Gold 가 부족합니다.");
+                if (purchaseItem.isOwned) Console.WriteLine("이미 구매한 아이템입니다.");
 
-                if (playerItem[1].isOwned != true && gold > storeItem[1].price)
+                else if (gold < purchaseItem.price) Console.WriteLine("Gold 가 부족합니다.");
+
+                else
                 {
-                    playerItem.Add(new Item("수련자 갑옷", "수련에 도움을 주는 갑옷입니다.", 5, 1000, true, false));
+                    gold -= purchaseItem.price;
+                    purchaseItem.isOwned = true;
+                    playerItem.Add(new Item(purchaseItem)); //복사 생성자 호출
+                    Console.WriteLine($"{purchaseItem.name} 구매 완료!");
                 }
             }
-
-            else if (input == "2")
-            {
-
-            }
-
-            else if (input == "3")
-            {
-
-            }
-
-            else if (input == "4")
-            {
-
-            }
-
-            else if (input == "5")
-            {
-
-            }
-
-            else if (input == "6")
-            {
-
-            }
-
-            else if (input == "0") return;
 
             else PrintErrorMsg();
         }
